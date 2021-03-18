@@ -566,7 +566,7 @@ void Plot(int M, const char *current_fileadres, const char *current_B_vs_mult)
     PlotMeanbRatio(fileadres, "hBvsRefMult");
 }*/
 
-void GammaFit(const char *fileadres = "/home/dim/FIT/data/UrQMD/11.5Gev/refMult_UrQMD_11.5gev_500k.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FITout/urqmd_7_fitGamma.root", int minNch = 25,bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
+void GammaFit(const char *fileadres = "/home/dim/FIT/data/UrQMD/11.5Gev/refMult_UrQMD_11.5gev_500k.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FITout/urqmd_7_fitGamma.root", int minNch = 20,bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
 {
     Start(fileadres,current_mult,outadres,minNch,efficiencyFit,fileadres2,current_mult2);
     PlotMeanb();
