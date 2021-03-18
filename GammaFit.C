@@ -105,15 +105,15 @@ double ftPn(double *x, double *par)
 
 void Start(const char *fileadres , const char *current_mult , const char *outadres , int minNch , bool efficiencyFit , const char *fileadres2 , const char *current_mult2 )
 {
-    cout<<"start"<<endl;
+    
     int Nch0 = minNch;
     TFile *file = new TFile(fileadres);
     TH1D *Gev = (TH1D *)file->Get(current_mult);
     Gev->Scale(1 / Gev->Integral(1, Gev->GetNbinsX(), "width"));
     bin_cent[0] = 1. * Gev->FindLastBinAbove();
-cout<<"start2"<<endl;
+
     if (efficiencyFit == true)
-    {cout<<"start33"<<endl;
+    {
         int mediumNn = 0.5 * Gev->FindLastBinAbove();
         TFile *fileGl = new TFile(fileadres2);
         TH1D *Ideal = (TH1D *)fileGl->Get(current_mult2);
@@ -122,7 +122,7 @@ cout<<"start2"<<endl;
         int EfmediumNn = mediumNn * Scale(Ideal, Gev);
         Gev->Scale(Integr / Gev->Integral(EfmediumNn, Gev->GetNbinsX(), "width"));cout<<"start3"<<endl;
     }
-cout<<"start4"<<endl;
+
     Gev->SetTitle("");
     Gev->GetYaxis()->SetTitle("1/N dN_{ch}/dN");
     Gev->GetXaxis()->SetTitle("N_{ch}");
