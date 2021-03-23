@@ -1,4 +1,5 @@
 #include <TH2.h>
+#include <TTree.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TMath.h>
@@ -13,12 +14,10 @@
 #include <TLegend.h>
 #include <TPaveText.h>
 
-//Задаем постоянные;
 const double sigma = 685, pi = TMath::Pi(), bmax = 20;
-//int color[10] = {1, 2, 3, 4, 42, 6, 46, 8, 9, 12};
 Color_t color[10] = {kRed + 2, kBlue + 1, 14, kGreen + 3, kMagenta + 3, kGreen + 1, kYellow + 2, 46, kBlue - 9, kViolet + 8};
-double a1 = -4.125, a2 = 1.51, a3 = -3.29, teta = 1.41, n_knee = 205.5, chi2_NDF;
-int bin_cent[11] = {400, 191, 134, 93, 63, 41, 25, 14, 7, 3, 2};
+Float_t a1 = -4.125, a2 = 1.51, a3 = -3.29, teta = 1.41, n_knee = 205.5, chi2, NDF, chi2_NDF;
+int bin_cent[11];
 TFile *d_outfile;
 
 double Scale(TH1D *HistTrue, TH1D *Hist)
@@ -103,9 +102,9 @@ double ftPn(double *x, double *par)
     return func;
 }
 
-void Start(const char *fileadres , const char *current_mult , const char *outadres , int minNch , bool efficiencyFit , const char *fileadres2 , const char *current_mult2 )
+void Start(const char *fileadres, const char *current_mult, const char *outadres, int minNch, bool efficiencyFit, const char *fileadres2, const char *current_mult2)
 {
-    
+
     int Nch0 = minNch;
     TFile *file = new TFile(fileadres);
     TH1D *Gev = (TH1D *)file->Get(current_mult);
@@ -120,7 +119,8 @@ void Start(const char *fileadres , const char *current_mult , const char *outadr
         Ideal->Scale(1 / Ideal->Integral(1, Ideal->GetNbinsX(), "width"));
         float Integr = Ideal->Integral(mediumNn, Ideal->GetNbinsX(), "width");
         int EfmediumNn = mediumNn * Scale(Ideal, Gev);
-        Gev->Scale(Integr / Gev->Integral(EfmediumNn, Gev->GetNbinsX(), "width"));cout<<"start3"<<endl;
+        Gev->Scale(Integr / Gev->Integral(EfmediumNn, Gev->GetNbinsX(), "width"));
+        cout << "start3" << endl;
     }
 
     Gev->SetTitle("");
@@ -152,7 +152,7 @@ void Start(const char *fileadres , const char *current_mult , const char *outadr
     GevC->GetYaxis()->SetLabelOffset(0.015);
 
     //Задаем функцию для фитирования Gaus и строим верхнию половину графика
-    TF1 *fc22 = new TF1("fit_func2", ftPn, 0.1, bin_cent[0], 5);
+    TF1 *fc22 = new TF1("fit_func_full", ftPn, 0.1, bin_cent[0], 5);
     TF1 *fc2 = new TF1("fit_func", ftPn, Nch0, bin_cent[0], 5);
     fc2->SetParameters(teta, bin_cent[0] * 0.6, a1, a2, a3);
 
@@ -169,7 +169,9 @@ void Start(const char *fileadres , const char *current_mult , const char *outadr
     a1 = fc2->GetParameter(2);
     a2 = fc2->GetParameter(3);
     a3 = fc2->GetParameter(4);
-    chi2_NDF = fc2->GetChisquare() / fc2->GetNDF();
+    chi2 = fc2->GetChisquare();
+    NDF = fc2->GetNDF();
+    chi2_NDF = chi2 / NDF;
 
     fc22->SetParameters(teta, n_knee, a1, a2, a3);
     fc22->SetNpx(2000);
@@ -205,6 +207,19 @@ void Start(const char *fileadres , const char *current_mult , const char *outadr
     d_outfile = new TFile(outadres, "recreate");
     c2->Write();
     fc2->Write();
+    fc22->Write();
+
+    TTree *treeFit = new TTree("FitResult", "FitResult");
+    treeFit->Branch("teta", &teta, "teta/F");
+    treeFit->Branch("n_knee", &n_knee, "n_knee/F");
+    treeFit->Branch("a1", &a1, "a1/F");
+    treeFit->Branch("a2", &a2, "a2/F");
+    treeFit->Branch("a3", &a3, "a3/F");
+    treeFit->Branch("chi2", &chi2, "chi2/F");
+    treeFit->Branch("NDF", &NDF, "NDF/F");
+    treeFit->Fill();
+
+    treeFit->Write();
 }
 double Pb(double *b, double *Nch)
 {
@@ -274,15 +289,15 @@ void PlotMeanb()
 {
     d_outfile->cd();
     Rebin(1);
-
-    TF1 *fPb = new TF1("fPb", Pb, 0, bmax, 2);
+    TF1 *fPb[10];
     TH1F *Himpact[10];
     double Bmean[10], Bsigma[10], centbin[10], centEr[10];
     for (int cent = 0; cent < 10; cent++)
     {
-        fPb->SetParameters(bin_cent[cent + 1], bin_cent[cent]);
-        Himpact[cent] = new TH1F(Form("%sCENT%d_%d", "ImpactParametDist_", cent * 10, (cent + 1) * 10), "ImpactParametDist", 200, 0, bmax);
-        Himpact[cent]->FillRandom("fPb", 200000);
+        fPb[cent] = new TF1(Form("fPb%d", cent), Pb, 0, bmax, 2);
+        fPb[cent]->SetParameters(bin_cent[cent + 1], bin_cent[cent]);
+        Himpact[cent] = new TH1F(Form("%s%d_%d", "B_VS_CentralityClass_", cent * 10, (cent + 1) * 10), "ImpactParametDist", 200, 0, bmax);
+        Himpact[cent]->FillRandom(Form("fPb%d", cent), 200000);
         Himpact[cent]->Scale(1 / Himpact[cent]->Integral(1, Himpact[cent]->GetNbinsX(), "width"));
         Himpact[cent]->Write();
 
@@ -295,8 +310,8 @@ void PlotMeanb()
     TGraphErrors *GrFit = new TGraphErrors(10, centbin, Bmean, centEr, Bsigma);
     GrFit->SetMarkerStyle(20);
     GrFit->SetMarkerSize(1.2);
-    GrFit->SetMarkerColorAlpha(kRed + 1, 1);
-    GrFit->SetLineColorAlpha(kRed + 1, 1);
+    GrFit->SetMarkerColor(1);
+    GrFit->SetLineColor(1);
     GrFit->SetLineWidth(2.);
     GrFit->SetName("Fit_B_Mean");
     GrFit->SetTitle("");
@@ -304,39 +319,29 @@ void PlotMeanb()
     GrFit->GetYaxis()->SetTitle("<b>, fm");
     GrFit->SetTitle("B vs Centraliry");
     GrFit->SetName("Fit_B_Mean");
-    TCanvas *c = new TCanvas("canvas fit b", "B vs Centraliry", 650, 500);
-    GrFit->Draw();
     GrFit->Write();
-    d_outfile->Close();
 
-     cout << endl
-         << "Centrality classes in impact parameter" << endl;
-    cout << "Centr. class, bmin-bmax , bmean" << endl;
-    for (int i = 1; i < 10; i++)
-    {
-        cout << Form("%d%s%d", (10 - i) * 10, "% - ", (11 - i) * 10) << "%, " << GrFit->Eval((10 - i) * 10) << " - " << GrFit->Eval((11 - i) * 10) << " fm, " << GrFit->Eval((11 - i) * 10 - 5) << " fm" << endl;
-    }
-    cout << Form("%d%s%d", 0, "% - ", 10) << "%, " << 0. << " - " << GrFit->Eval(10) << " fm, " << GrFit->Eval(5) << " fm" << endl;
-}
+    TTree *tree = new TTree("Result", "Result");
+    Float_t MinPersent;
+    Float_t MaxPersent;
+    Int_t MinBorder;
+    Int_t MaxBorder;
+    tree->Branch("MinPersent", &MinPersent, "MinPersent/F");
+    tree->Branch("MaxPersent", &MaxPersent, "MaxPersent/F");
+    tree->Branch("MinBorder", &MinBorder, "MinBorder/I");
+    tree->Branch("MaxBorder", &MaxBorder, "MaxBorder/I");
 
-void PlotMeanbRatio(const char *fileadres = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_B_vs_mult = "hBvsRefMult")
-{
-    Rebin(1);
-    double Bmean[10], Bsigma[10], cent[10], centEr[10];
     for (int i = 0; i < 10; i++)
     {
-        Bmean[i] = bmean(bin_cent[i + 1], bin_cent[i]);
-        Bsigma[i] = bsigma(bin_cent[i + 1], bin_cent[i]);
-        cent[i] = i * 10 + 5;
-        centEr[i] = 0;
+        MinPersent = (10 - 1 - i) * 10;
+        MaxPersent = (10 - i) * 10;
+        MinBorder = bin_cent[i + 1];
+        MaxBorder = bin_cent[i];
+        tree->Fill();
     }
-    TGraphErrors *GrFit = new TGraphErrors(10, cent, Bmean, centEr, Bsigma);
-    GrFit->SetMarkerStyle(20);
-    GrFit->SetMarkerSize(1.2);
-    GrFit->SetMarkerColorAlpha(kRed + 1, 1);
-    GrFit->SetLineColorAlpha(kRed + 1, 1);
-    GrFit->SetLineWidth(2.);
-    GrFit->SetName("Fit_B_Mean");
+
+    tree->Write();
+    d_outfile->Close();
 
     cout << endl
          << "Centrality classes in impact parameter" << endl;
@@ -346,228 +351,10 @@ void PlotMeanbRatio(const char *fileadres = "/home/dim/FIT/data/UrQMD/7.7Gev/ref
         cout << Form("%d%s%d", (10 - i) * 10, "% - ", (11 - i) * 10) << "%, " << GrFit->Eval((10 - i) * 10) << " - " << GrFit->Eval((11 - i) * 10) << " fm, " << GrFit->Eval((11 - i) * 10 - 5) << " fm" << endl;
     }
     cout << Form("%d%s%d", 0, "% - ", 10) << "%, " << 0. << " - " << GrFit->Eval(10) << " fm, " << GrFit->Eval(5) << " fm" << endl;
-
-    TFile *file_B_vs_mult = new TFile(fileadres);
-    TH2F *MeanB;
-    MeanB = (TH2F *)file_B_vs_mult->Get(current_B_vs_mult);
-    TH1D *Hist[10];
-    double y[10], ey[10];
-    for (int i = 0; i < 10; i++)
-    {
-        Hist[i] = MeanB->ProjectionY(Form("%d", i), bin_cent[i + 1] + 1, bin_cent[i] + 1);
-        y[i] = Hist[i]->GetMean();
-        ey[i] = Hist[i]->GetStdDev();
-    }
-    TGraphErrors *grData;
-    grData = new TGraphErrors(10, cent, y, centEr, ey);
-    grData->GetYaxis()->SetRangeUser(-1, bmax);
-    grData->GetXaxis()->SetLimits(0, 100);
-    grData->GetXaxis()->SetNdivisions(505);
-    grData->SetMarkerStyle(25);
-    grData->SetMarkerSize(1.2);
-    grData->SetMarkerColorAlpha(1, 1);
-    grData->SetLineColorAlpha(1, 1);
-    grData->GetYaxis()->SetTitle("<b>, fm");
-    grData->SetTitle("");
-    grData->SetName("model");
-
-    TCanvas *RatCan = new TCanvas("RatCan", "RatCan", 600, 650);
-    TPad *pad12 = new TPad("pad12", "pad12", 0, 0.3, 1, 1.0);
-    pad12->SetBottomMargin(0.0);
-    pad12->Draw();
-    pad12->cd();
-    grData->Draw("AP");
-    GrFit->Draw("SAME P");
-    TLegend *legdif = new TLegend(0.18, 0.7, 0.33, 0.85);
-    legdif->SetBorderSize(0);
-    legdif->AddEntry(grData, "Data", "p");
-    legdif->AddEntry(GrFit, "Fit", "p");
-    legdif->Draw();
-
-    RatCan->cd(); // Go back to the main canvas before defining pad2
-    TPad *pad22 = new TPad("pad22", "pad22", 0, 0, 1, 0.3);
-    pad22->SetBottomMargin(0.3);
-    pad22->SetTopMargin(0.0);
-    pad22->Draw();
-    pad22->cd();
-
-    TGraphErrors *RatioMeanb = RatioGr(GrFit, grData, 0, 0.85, 100, 1.15);
-    RatioMeanb->SetMarkerStyle(20);
-    RatioMeanb->SetMarkerSize(1.2);
-    RatioMeanb->SetMarkerColorAlpha(kRed + 1, 1);
-    RatioMeanb->SetLineColorAlpha(kRed + 1, 1);
-    RatioMeanb->SetTitle("");
-    RatioMeanb->GetXaxis()->SetTitle("Centrality, %");
-    RatioMeanb->GetXaxis()->SetLabelSize(0.08);
-    RatioMeanb->GetXaxis()->SetTitleSize(0.09);
-    RatioMeanb->GetYaxis()->SetTitle("Fit/Data");
-    RatioMeanb->GetYaxis()->SetLabelSize(0.08);
-    RatioMeanb->GetYaxis()->SetTitleSize(0.09);
-    RatioMeanb->GetYaxis()->CenterTitle(true);
-    RatioMeanb->GetYaxis()->SetNdivisions(505);
-    RatioMeanb->GetXaxis()->SetNdivisions(505);
-    RatioMeanb->GetYaxis()->SetTitleOffset(0.4);
-    RatioMeanb->GetXaxis()->SetTickLength(0.08);
-    RatioMeanb->SetLineWidth(2.);
-    RatioMeanb->Draw("AP");
-    TLine line;
-    line.DrawLine(0, 1, 100, 1);
-    line.SetLineStyle(2);
-    line.DrawLine(0, 1.05, 100, 1.05);
-    line.DrawLine(0, 0.95, 100, 0.95);
-    d_outfile->cd();
-    GrFit->Write();
-    grData->Write();
-    RatCan->Write();
-    d_outfile->Close();
 }
 
-void Plot(int M, const char *current_fileadres, const char *current_B_vs_mult)
+void GammaFit(const char *fileadres = "/home/dim/FIT/FITglaub/AMPT15_7/glauber_qa.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FITout/urqmd_7_fitGamma.root", int minNch = 20, bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
 {
-    TFile *file = new TFile(current_fileadres);
-    TH2F *B_vs_mult;
-    B_vs_mult = (TH2F *)file->Get(current_B_vs_mult);
-    int NbinY = B_vs_mult->GetNbinsY();
-    const int number = NbinY / M, numberY = bin_cent[0] / (1.1 * M);
-    TH1D *Hist[M], *HistImpact[M], *histY;
-    histY = B_vs_mult->ProjectionY("y", 10, 11);
-    float width = histY->GetBinWidth(1), bi, bii;
-    float meanN[M], sigmaN[M], ratio[M], b[M], cb[M], fn[M], sign[M], ration[M];
-    float binNch[M], binEr[M], meanb[M], meanbFit[M];
-    int binN0 = 1, binNn = binN0 + numberY;
-    cout << "Nchmax=" << bin_cent[0] << endl;
-    for (int i = 0; i < M; i++)
-    {
-        Hist[i] = B_vs_mult->ProjectionX(Form("%d_hist_", i), 1 + i * number, (i + 1) * number);
-        meanN[i] = Hist[i]->GetMean();
-        sigmaN[i] = Hist[i]->GetStdDev();
-        ratio[i] = sigmaN[i] * sigmaN[i] / (meanN[i]);
-        bi = (i)*number * width;
-
-        bii = bi + number * width;
-        b[i] = 0.5 * (bi + bii);
-        cb[i] = (pi / sigma) * (bi * bi + bi * bii + bii * bii) / 3;
-
-        fn[i] = n_knee * exp(a1 * cb[i] + a2 * pow(cb[i], 2) + a3 * pow(cb[i], 3));
-        sign[i] = sqrt(fn[i] * teta);
-        ration[i] = (sign[i] * sign[i]) / (fn[i]);
-
-        HistImpact[i] = B_vs_mult->ProjectionY(Form("%d_hist_mult", i), 1 + binN0, 1 + binNn);
-        meanb[i] = HistImpact[i]->GetMean();
-        binNch[i] = 0.5 * (binN0 + binNn);
-        meanbFit[i] = bmean(binNn, binN0);
-        //cout<<"Nn="<<binNn<<endl;
-        binEr[i] = 0;
-        binNn += numberY;
-        binN0 += numberY;
-    }
-
-    TCanvas *cdif = new TCanvas("cdif", "def Flow All", 900, 700);
-    cdif->Divide(2, 2);
-    cdif->cd(1);
-    TGraphErrors *GrNchData = new TGraphErrors(M, b, meanN, binEr, binEr);
-    GrNchData->SetTitle("");
-    GrNchData->GetYaxis()->SetTitle("<N_{ch}>");
-    GrNchData->GetXaxis()->SetTitle("b");
-    GrNchData->GetXaxis()->SetLimits(0., bmax);
-    GrNchData->SetMarkerStyle(25);
-    GrNchData->Draw();
-    TGraphErrors *GrNchFit = new TGraphErrors(M, b, fn, binEr, binEr);
-    GrNchFit->SetMarkerStyle(20);
-    GrNchFit->Draw("SAME P");
-    TLegend *legdif2 = new TLegend(0.55, 0.65, 0.85, 0.85);
-    legdif2->SetBorderSize(0);
-    legdif2->AddEntry(GrNchData, "Data", "pe");
-    legdif2->AddEntry(GrNchFit, "Fit", "pe");
-    legdif2->Draw();
-    cdif->cd(3);
-    TGraphErrors *RatioNch = RatioGr(GrNchFit, GrNchData, 0, 0.75, bmax, 1.25);
-    RatioNch->SetTitle("");
-    RatioNch->GetYaxis()->SetTitle("Fit/Data");
-    RatioNch->GetXaxis()->SetTitle("b");
-    RatioNch->SetMarkerStyle(20);
-    RatioNch->Draw("AP");
-    TLine line;
-    line.SetLineWidth(2);
-    line.SetLineStyle(2);
-    line.DrawLine(0, 1, bmax, 1);
-
-    cdif->cd(2);
-    TGraphErrors *GrNch_vs_b = new TGraphErrors(M, binNch, meanb, binEr, binEr);
-    GrNch_vs_b->SetName("Nch_vs_b_data");
-    GrNch_vs_b->GetYaxis()->SetTitle("<b>");
-    GrNch_vs_b->GetXaxis()->SetTitle("N_{ch}");
-    GrNch_vs_b->GetXaxis()->SetLimits(0., 1.1 * binNch[M - 1]);
-    GrNch_vs_b->SetMarkerStyle(25);
-    GrNch_vs_b->Draw();
-    TGraphErrors *GrNch_vs_bFit = new TGraphErrors(M, binNch, meanbFit, binEr, binEr);
-    GrNch_vs_bFit->SetMarkerStyle(20);
-    GrNch_vs_bFit->SetName("Nch_vs_b_Fit");
-    GrNch_vs_bFit->Draw("SAME P");
-    TLegend *legdif4 = new TLegend(0.55, 0.65, 0.85, 0.85);
-    legdif4->SetBorderSize(0);
-    legdif4->AddEntry(GrNchData, "Data", "pe");
-    legdif4->AddEntry(GrNch_vs_bFit, "Fit", "pe");
-    legdif4->Draw();
-    cdif->cd(4);
-    TGraphErrors *RatioNch_vs_b = RatioGr(GrNch_vs_bFit, GrNch_vs_b, 0, 0.75, binNch[M - 1], 1.25);
-    RatioNch_vs_b->SetTitle("");
-    RatioNch_vs_b->GetYaxis()->SetTitle("Fit/Data");
-    RatioNch_vs_b->GetXaxis()->SetTitle("N_{ch}");
-    RatioNch_vs_b->SetMarkerStyle(20);
-    RatioNch_vs_b->Draw("AP");
-    line.DrawLine(0, 1, 1.1 * binNch[M - 1], 1);
-
-    d_outfile->cd();
-    GrNch_vs_b->Write();
-    GrNch_vs_bFit->Write();
-    d_outfile->Close();
-    /*
-    cdif->cd(3);
-    TGraphErrors *GrSigmaData = new TGraphErrors(M, b, sigmaN,binEr,binEr);
-    GrSigmaData->SetTitle("");
-    GrSigmaData->GetYaxis()->SetTitle("#sigma");
-    GrSigmaData->GetXaxis()->SetTitle("b");
-    GrSigmaData->GetXaxis()->SetLimits(0., bmax);
-    GrSigmaData->Draw();
-    TGraph *GrSigmaFit = new TGraphErrors(M, b, sign,binEr,binEr);
-    GrSigmaFit->SetMarkerStyle(20);
-    GrSigmaFit->SetMarkerColor(2);
-    GrSigmaFit->Draw("SAME P");
-    TLegend *legdif1 = new TLegend(0.55, 0.65, 0.85, 0.85);
-    legdif1->SetBorderSize(0);
-    legdif1->AddEntry(GrSigmaData, "Data", "pe");
-    legdif1->AddEntry(GrSigmaFit, "Fit", "pe");
-    legdif1->Draw();
-
-    cdif->cd(4);
-    TGraphErrors *GrRatioData = new TGraphErrors(M, b, ratio,binEr,binEr);
-    GrRatioData->SetTitle("");
-    GrRatioData->GetYaxis()->SetTitle("#sigma^{2}/<N_{ch}>");
-    GrRatioData->GetXaxis()->SetTitle("b");
-    GrRatioData->GetXaxis()->SetLimits(0., bmax);
-    GrRatioData->GetYaxis()->SetLimits(0., ratio[M - 1]);
-    GrRatioData->Draw();
-    TGraphErrors *GrRatioFit = new TGraphErrors(M, b, ration,binEr,binEr);
-    GrRatioFit->SetMarkerStyle(20);
-    GrRatioFit->SetMarkerColor(2);
-    GrRatioFit->Draw("SAME P");
-    TLegend *legdif3 = new TLegend(0.25, 0.65, 0.55, 0.85);
-    legdif3->SetBorderSize(0);
-    legdif3->AddEntry(GrRatioData, "Data", "pe");
-    legdif3->AddEntry(GrRatioFit, "Fit", "pe");
-    legdif3->Draw();*/
-}
-
-/*void GammaFit(const char *fileadres = "/home/dim/FIT/data/UrQMD/11.5Gev/refMult_UrQMD_11.5gev_500k.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FITout/urqmd_7_fitGamma.root", int minNch = 15)
-{
-    Start(fileadres, current_mult, outadres, minNch, false, fileadres, current_mult);
-    //PlotMeanb();
-    PlotMeanbRatio(fileadres, "hBvsRefMult");
-}*/
-
-void GammaFit(const char *fileadres = "/home/dim/FIT/data/UrQMD/11.5Gev/refMult_UrQMD_11.5gev_500k.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FITout/urqmd_7_fitGamma.root", int minNch = 20,bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
-{
-    Start(fileadres,current_mult,outadres,minNch,efficiencyFit,fileadres2,current_mult2);
+    Start(fileadres, current_mult, outadres, minNch, efficiencyFit, fileadres2, current_mult2);
     PlotMeanb();
 }

@@ -2,7 +2,7 @@
 
 Below is a detailed description of the program used to reconstruct the distribution of the impact parameter.
 
-## 1. Fitting model data
+## 1.2 Fitting model data
 
 In the case of fitting model data, it is sufficient to have only a histogram with a multiplicity distribution.
 
@@ -20,17 +20,9 @@ Where the arguments are:
 
 `minNch` - lower value of the fitting area ( `20` by default).
 
-## 1.1 OUTPUT
+to set the value of the cross section in line 17 set the desired value of the variable `sigma`.
 
-Resulting file `outadres` will contain TCanvas with fit results and data-to-fit ratio - `Canvas_0f_fit_result` .
-
-The resulting fit function of the multiplicity distribution - `fit_func` .
-
-TGraphErrors of impact parametr as a function of centrality - `fit_B_Mean` .
-
-Histograms with the distribution of the impact parameter in centrality class - `ImpactParametDist_CENT*_*` .
-
-## 2. Fitting reconstracted data
+## 1.2 Fitting reconstracted data
 
 When fitting the reconstructed data, it is necessary to take into account the efficiency of the detectors. To take these features into account, normalization is made to non-reconstructed model data.
 
@@ -55,12 +47,18 @@ Where the arguments are:
 `current_mult2` - Histogram with multiplisity of non-reconstructed model data.
 
 
-## 2.1 OUTPUT
+## 2 OUTPUT
 
 Resulting file `outadres` will contain TCanvas with fit results and data-to-fit ratio - `Canvas_0f_fit_result` .
 
-The resulting fit function of the multiplicity distribution - `fit_func` .
+ Where the - `fit_func` is the resulting fit function of the multiplicity distribution .
 
-TGraphErrors of impact parametr as a function of centrality - `fit_B_Mean` .
+`FitResult` - TTree with fit parameters of fit function.
 
-Histograms with the distribution of the impact parameter in centrality class - `ImpactParametDist_CENT*_*` .
+`Result` - TTree with min and max persent of centrality and also the boundaries of the centrality classes.
+
+`fit_B_Mean` - TGraphErrors of impact parametr as a function of centrality .
+
+`ImpactParametDist_CENT*_*` - histograms with the distribution of the impact parameter in centrality class.
+
+
