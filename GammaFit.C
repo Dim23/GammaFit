@@ -109,7 +109,7 @@ void Start(const char *fileadres, const char *current_mult, const char *outadres
     TFile *file = new TFile(fileadres);
     TH1D *Gev = (TH1D *)file->Get(current_mult);
     Gev->Scale(1 / Gev->Integral(1, Gev->GetNbinsX(), "width"));
-    bin_cent[0] = 1. * Gev->FindLastBinAbove();
+    bin_cent[0] = 1.05 * Gev->FindLastBinAbove();
 
     if (efficiencyFit == true)
     {
@@ -269,14 +269,16 @@ void Rebin(double N0)
     int n0 = bin_cent[0] - 1;
     double integr = 0, norm;
     norm = integ(N0, bin_cent[0]);
-    for (int i = 0; i < 10; i++)
+    bin_cent[10]=N0;
+    for (int i = 0; i < 9; i++)
     {
         while (integr < cen[i])
         {
-            integr = integ(n0, bin_cent[0]) / norm;
             n0 = n0 - 1;
+            integr = integ(n0, bin_cent[0]) / norm;
+            
         }
-        bin_cent[i + 1] = n0 + 1;
+        bin_cent[i + 1] = n0+1;
     }
     cout << "Centrality classes in multiplicity" << endl;
     for (int i = 1; i < 11; i++)
@@ -322,19 +324,19 @@ void PlotMeanb()
     GrFit->Write();
 
     TTree *tree = new TTree("Result", "Result");
-    Float_t MinPersent;
-    Float_t MaxPersent;
+    Float_t MinPercent;
+    Float_t MaxPercent;
     Int_t MinBorder;
     Int_t MaxBorder;
-    tree->Branch("MinPersent", &MinPersent, "MinPersent/F");
-    tree->Branch("MaxPersent", &MaxPersent, "MaxPersent/F");
+    tree->Branch("MinPercent", &MinPercent, "MinPercent/F");
+    tree->Branch("MaxPercent", &MaxPercent, "MaxPercent/F");
     tree->Branch("MinBorder", &MinBorder, "MinBorder/I");
     tree->Branch("MaxBorder", &MaxBorder, "MaxBorder/I");
 
     for (int i = 0; i < 10; i++)
     {
-        MinPersent = (10 - 1 - i) * 10;
-        MaxPersent = (10 - i) * 10;
+        MinPercent = (i) * 10;
+        MaxPercent = (i+1) * 10;
         MinBorder = bin_cent[i + 1];
         MaxBorder = bin_cent[i];
         tree->Fill();
@@ -353,7 +355,7 @@ void PlotMeanb()
     cout << Form("%d%s%d", 0, "% - ", 10) << "%, " << 0. << " - " << GrFit->Eval(10) << " fm, " << GrFit->Eval(5) << " fm" << endl;
 }
 
-void GammaFit(const char *fileadres = "/home/dim/FIT/FITglaub/AMPT15_7/glauber_qa.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FITout/urqmd_7_fitGamma.root", int minNch = 20, bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
+void GammaFit(const char *fileadres = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma.root", int minNch = 20, bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
 {
     Start(fileadres, current_mult, outadres, minNch, efficiencyFit, fileadres2, current_mult2);
     PlotMeanb();
