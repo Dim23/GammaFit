@@ -55,10 +55,23 @@ Resulting file `outadres` will contain TCanvas with fit results and data-to-fit 
 
 `FitResult` - TTree with fit parameters of fit function.
 
-`Result` - TTree with min and max persent of centrality and also the boundaries of the centrality classes.
+`Result` - TTree with min and max percent of centrality and also the boundaries of the centrality classes.
 
 `fit_B_Mean` - TGraphErrors of impact parametr as a function of centrality .
 
 `ImpactParametDist_CENT*_*` - histograms with the distribution of the impact parameter in centrality class.
+
+## 2.1 Using centrality classes provided from the framework in the analysis
+The file `outadres` have all needed information about centrality class.
+Use macro `printFinal.C` to display this information in a simple and readable way:
+
+`root -l -b -q printFinal.C'("path-to-FINAL.root")'`
+
+This will print out all needed information for each centrality class.
+This macro also can save output information in latex format.
+Example of `printFinal.C` saving in latex table:
+
+`root -l -b -q printFinal.C'("path-to-FINAL.root","./example.tex")'`
+
 
 
