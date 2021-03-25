@@ -56,6 +56,7 @@ void printFinal(TString inFileName="/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma.r
    // std::vector<std::pair<Float_t, Float_t>> vNpart;
    // std::vector<std::pair<Float_t, Float_t>> vNcoll;
     std::vector<Float_t> vBavg;
+    std::vector<Float_t> vBavgRMS;
     //std::vector<Float_t> vNpartavg;
     //std::vector<Float_t> vNcollavg;
 
@@ -69,11 +70,14 @@ void printFinal(TString inFileName="/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma.r
         vBorders.push_back({MinBorder, MaxBorder});
     }
 Double_t *vy_gr1 = hBavg->GetY();
+Double_t *ey_gr1 = hBavg->GetEY();
     // Read averaged values
     for (int i=0; i<hBavg->GetN(); i++)
     {
         if (vy_gr1[i] != 0)
             vBavg.push_back(vy_gr1[i]);
+            vBavgRMS.push_back(ey_gr1[i]);
+
     }
    /* for (int i=0; i<hNpartavg->GetNbinsX(); i++)
     {
@@ -128,14 +132,14 @@ Double_t *vy_gr1 = hBavg->GetY();
     if (isTypeSimple)
     {
         std::cout << "File: " << inFileName.Data() << "." << std::endl;
-        std::cout << "Cent, %   | Mult_min | Mult_max | <b>, fm | bmin, fm | bmax, fm |" << std::endl;
-        std::cout << "----------|----------|----------|---------|----------|----------|" << std::endl;
+        std::cout << "Cent, %   | Mult_min | Mult_max | <b>, fm |   RMS   | bmin, fm | bmax, fm |"<< std::endl;
+        std::cout << "----------|----------|----------|---------|---------|----------|----------|"<< std::endl;
         for (int i=0; i<NreasonableClasses; i++)
         {
-            std::cout << Form("%3.0f - %3.0f | %8i | %8i | %7.2f | %8.2f | %8.2f |", 
+            std::cout << Form("%3.0f - %3.0f | %8i | %8i | %7.2f | %7.2f | %8.2f | %8.2f |", 
                 vCent.at(i).first, vCent.at(i).second,
                 vBorders.at(i).first, vBorders.at(i).second,
-                vBavg.at(i), vBimp.at(i).first, vBimp.at(i).second )<< std::endl;
+                vBavg.at(i), vBavgRMS.at(i), vBimp.at(i).first, vBimp.at(i).second )<< std::endl;
         }
         std::cout << "-------------------------------------------------------------------------------------------------------------------------------------" << std::endl;
     }
@@ -159,14 +163,14 @@ Double_t *vy_gr1 = hBavg->GetY();
         myfile << "\\begin{center}\n";
         myfile << "\\begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c|c| }\n";
         myfile << "\t\\hline\n";
-        myfile << "\t Centrality, \\% & $N_{ch}^{min}$ & $N_{ch}^{max}$ & $\\langle b \\rangle$, fm & $b_{min}$, fm & $b_{max}$, fm  \\\\\n";
+        myfile << "\t Centrality, \\% & $N_{ch}^{min}$ & $N_{ch}^{max}$ & $\\langle b \\rangle$, fm & RMS & $b_{min}$, fm & $b_{max}$, fm  \\\\\n";
         for (int i=0; i<NreasonableClasses; i++)
         {
             myfile << "\t\\hline\n";
-            myfile << Form("\t%.0f - %.0f & %i & %i & %.2f & %.2f & %.2f  \\\\\n",
+            myfile << Form("\t%.0f - %.0f & %i & %i & %.2f & %.2f & %.2f & %.2f  \\\\\n",
                 vCent.at(i).first, vCent.at(i).second,
                 vBorders.at(i).first, vBorders.at(i).second,
-                vBavg.at(i), vBimp.at(i).first, vBimp.at(i).second);
+                vBavg.at(i), vBavgRMS.at(i), vBimp.at(i).first, vBimp.at(i).second);
         }
         myfile << "\t\\hline\n";
         myfile << "\\end{tabular}\n";
