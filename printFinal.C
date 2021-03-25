@@ -79,27 +79,14 @@ Double_t *ey_gr1 = hBavg->GetEY();
             vBavgRMS.push_back(ey_gr1[i]);
 
     }
-   /* for (int i=0; i<hNpartavg->GetNbinsX(); i++)
-    {
-        if (hNpartavg->GetBinContent(i+1) != 0)
-            vNpartavg.push_back(hNpartavg->GetBinContent(i+1));
-    }
-    for (int i=0; i<hNcollavg->GetNbinsX(); i++)
-    {
-        if (hNcollavg->GetBinContent(i+1) != 0)
-            vNcollavg.push_back(hNcollavg->GetBinContent(i+1));
-    }*/
+
 
     // Fitting mean values with pol5 function
     TF1 *fitB = new TF1("fitB","pol5",0.,100.);
-   // TF1 *fitNpart = new TF1("fitNpart","pol5",0.,100.);
-    //TF1 *fitNcoll = new TF1("fitNcoll","pol5",0.,100.);
 
     hBavg->Fit(fitB,"R0Q");
-    //hNpartavg->Fit(fitNpart,"R0Q");
-    //hNcollavg->Fit(fitNcoll,"R0Q");
-
-    // Extract min/max values for B, Npart, Ncoll
+ 
+    // Extract min/max values for B
     Float_t fmin, fmax;
     for (int i=0; i<vBavg.size(); i++)
     {
@@ -107,18 +94,7 @@ Double_t *ey_gr1 = hBavg->GetEY();
         fmax = fitB->Eval(vCent.at(i).second);
         vBimp.push_back({fmin, fmax});
     }
-   /* for (int i=0; i<vNpartavg.size(); i++)
-    {
-        fmin = fitNpart->Eval(vCent.at(i).first);
-        fmax = fitNpart->Eval(vCent.at(i).second);
-        vNpart.push_back({fmin, fmax});
-    }
-    for (int i=0; i<vNcollavg.size(); i++)
-    {
-        fmin = fitNcoll->Eval(vCent.at(i).first);
-        fmax = fitNcoll->Eval(vCent.at(i).second);
-        vNcoll.push_back({fmin, fmax});
-    }*/
+   
 
     Int_t NreasonableClasses = vBavg.size();
 
