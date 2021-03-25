@@ -217,6 +217,7 @@ void Start(const char *fileadres, const char *current_mult, const char *outadres
     treeFit->Branch("a3", &a3, "a3/F");
     treeFit->Branch("chi2", &chi2, "chi2/F");
     treeFit->Branch("NDF", &NDF, "NDF/F");
+    treeFit->Branch("minNch", &minNch, "minNch/I");
     treeFit->Fill();
 
     treeFit->Write();
@@ -355,7 +356,7 @@ void PlotMeanb()
     cout << Form("%d%s%d", 0, "% - ", 10) << "%, " << 0. << " - " << GrFit->Eval(10) << " fm, " << GrFit->Eval(5) << " fm" << endl;
 }
 
-void GammaFit(const char *fileadres = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma.root", int minNch = 20, bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
+void GammaFit(const char *fileadres = "/home/dim/FIT/data/UrQMD/5Gev/refMult_UrQMD_4.5gev_500k.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FIToutGamma/urqmd_5_fitGamma.root", int minNch = 20, bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
 {
     Start(fileadres, current_mult, outadres, minNch, efficiencyFit, fileadres2, current_mult2);
     PlotMeanb();
