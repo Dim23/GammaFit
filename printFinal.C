@@ -9,7 +9,7 @@
 #include <TTree.h>
 #include <TH1D.h>
 
-void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma.root", TString outFileName = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGammaOut.tex")
+void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma_reco16.root", TString outFileName = "/home/dim/FIT/FIToutGamma/urqmd_7reco16_fitGammaOut.tex")
 {
     if (inFileName == "")
         return;
