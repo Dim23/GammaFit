@@ -9,13 +9,13 @@
 #include <TTree.h>
 #include <TH1D.h>
 
-void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma_reco16.root", TString outFileName = "/home/dim/FIT/FIToutGamma/urqmd_7reco16_fitGammaOut.tex")
+void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/GSM_5_fitGamma.root", TString outFileName = "/home/dim/FIT/FIToutGamma/GSM_5_fitGammaOut.csv")
 {
     if (inFileName == "")
         return;
 
     Bool_t isTypeSimple = false; // true;
-    Bool_t isTypeLatex = true;
+    Bool_t isTypeLatex = false;
     Bool_t isTypeScv = false;
     Bool_t isTypeCpp = false;
 
@@ -26,14 +26,6 @@ void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma
         isTypeLatex = true;
     else if (outFileName.Contains(".csv"))
         isTypeScv = true;
-    else if (outFileName.Contains(".C"))
-        isTypeCpp = true;
-    else if (outFileName.Contains(".cpp"))
-        isTypeCpp = true;
-    else if (outFileName.Contains(".h"))
-        isTypeCpp = true;
-    else if (outFileName.Contains(".hpp"))
-        isTypeCpp = true;
 
     TFile *fi = new TFile(inFileName.Data(), "read");
     if (!fi)
@@ -201,7 +193,7 @@ void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma
         std::cout << "Output file " << outFileName.Data() << " is created." << std::endl;
         myfile.close();
     }
-    /*
+    
     // Outout for isTypeScv case
     if (isTypeScv)
     {
@@ -209,108 +201,17 @@ void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma
         myfile.open(outFileName.Data());
 
         myfile << "Generated from a file: " << inFileName.Data() << "\n";
-        myfile << "Centrality class,Mult_min,Mult_max,Mean b,b_min,b_max,Mean Npart,Npart_min,Npart_max,Mean Ncoll,Ncoll_min,Ncoll_max,\n";
-        for (int i=0; i<NreasonableClasses; i++)
+        myfile <<" Centrality, Mult_min, Mult_max, Mean b, RMS ,b_min, b_max,\n";
+        for (int i = 0; i < NreasonableClasses; i++)
         {
-            myfile << Form("%.0f - %.0f,%i,%i,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,\n",
-                vCent.at(i).first, vCent.at(i).second,
-                vBorders.at(i).first, vBorders.at(i).second,
-                vBavg.at(i), vBimp.at(i).first, vBimp.at(i).second,
-                vNpartavg.at(i), vNpart.at(i).second, vNpart.at(i).first,
-                vNcollavg.at(i), vNcoll.at(i).second, vNcoll.at(i).first);
+            myfile << Form("%.0f - %.0f , %i , %i , %.2f , %.2f , %.2f , %.2f ,\n",
+                           vCent.at(i).first, vCent.at(i).second,
+                           vBorders.at(i).first, vBorders.at(i).second,
+                           vBavg.at(i), vBavgRMS.at(i), vBimp.at(i).first, vBimp.at(i).second);
         }
+        myfile << " theta , N_knee , a1 , a2 , a3 , chi^2 , NDF , N_{ch}^{fit}(min) , \n";
+        myfile << Form("%.2f , %.2f , %.2f , %.2f , %.2f , %.2f , %.2f , %i ,\n", teta, n_knee, a1, a2, a3, chi2, NDF, minNch);
         std::cout << "Output file " << outFileName.Data() << " is created." << std::endl;
         myfile.close();
     }
-
-    // Output for isTypeCpp case
-    if (isTypeCpp)
-    {
-        std::cout << "File: " << inFileName.Data() << "." << std::endl;
-        myfile.open(outFileName.Data());
-
-        myfile << "// Generated from a file: " << inFileName.Data() << "\n";
-        myfile << "Float_t minCentPercent [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vCent.at(i).first << ", ";
-            if (i==NreasonableClasses-1) myfile << vCent.at(i).first << "};\n";
-        }
-        myfile << "Float_t maxCentPercent [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vCent.at(i).second << ", ";
-            if (i==NreasonableClasses-1) myfile << vCent.at(i).second << "};\n";
-        }
-        myfile << "Int_t minMult [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vBorders.at(i).first << ", ";
-            if (i==NreasonableClasses-1) myfile << vBorders.at(i).first << "};\n";
-        }
-        myfile << "Int_t maxMult [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vBorders.at(i).second << ", ";
-            if (i==NreasonableClasses-1) myfile << vBorders.at(i).second << "};\n";
-        }
-        myfile << "Float_t meanB [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vBavg.at(i) << ", ";
-            if (i==NreasonableClasses-1) myfile << vBavg.at(i) << "};\n";
-        }
-        myfile << "Float_t minB [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vBimp.at(i).first << ", ";
-            if (i==NreasonableClasses-1) myfile << vBimp.at(i).first << "};\n";
-        }
-        myfile << "Float_t maxB [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vBimp.at(i).second << ", ";
-            if (i==NreasonableClasses-1) myfile << vBimp.at(i).second << "};\n";
-        }
-        myfile << "Float_t meanNpart [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vNpartavg.at(i) << ", ";
-            if (i==NreasonableClasses-1) myfile << vNpartavg.at(i) << "};\n";
-        }
-        myfile << "Float_t minNpart [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vNpart.at(i).first << ", ";
-            if (i==NreasonableClasses-1) myfile << vNpart.at(i).first << "};\n";
-        }
-        myfile << "Float_t maxNpart [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vNpart.at(i).second << ", ";
-            if (i==NreasonableClasses-1) myfile << vNpart.at(i).second << "};\n";
-        }
-        myfile << "Float_t meanNcoll [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vNcollavg.at(i) << ", ";
-            if (i==NreasonableClasses-1) myfile << vNcollavg.at(i) << "};\n";
-        }
-        myfile << "Float_t minNcoll [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vNcoll.at(i).first << ", ";
-            if (i==NreasonableClasses-1) myfile << vNcoll.at(i).first << "};\n";
-        }
-        myfile << "Float_t maxNcoll [" << NreasonableClasses << "] = { ";
-        for (int i=0; i<NreasonableClasses; i++)
-        {
-            if (i!=NreasonableClasses-1) myfile << vNcoll.at(i).second << ", ";
-            if (i==NreasonableClasses-1) myfile << vNcoll.at(i).second << "};\n";
-        }
-        
-
-        std::cout << "Output file " << outFileName.Data() << " is created." << std::endl;
-        myfile.close();
-    }*/
 }

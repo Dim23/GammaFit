@@ -1,12 +1,14 @@
-# Quick information with step-by-step instruction.
+# Quick tutorial for centrality determination using direct impact parameter reconstruction in MPD (NICA)
 
 Below is a detailed description of the program used to reconstruct the distribution of the impact parameter.
+
+To start the fitting process, dowland script from `https://github.com/Dim23/GammaFit.git`.
 
 ## 1.2 Fitting model data
 
 In the case of fitting model data, it is sufficient to have only a histogram with a multiplicity distribution.
 
-To start the fitting process, dowland script from `https://github.com/Dim23/GammaFit.git` and run `GammaFit.C` :
+Use following commands to run `GammaFit.C` :
 
     root -b GammaFit.C(fileadres, current_mult, outadres, minNch)
 

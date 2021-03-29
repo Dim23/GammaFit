@@ -479,9 +479,9 @@ void PlotMeanb2(const char *fileadres = "/home/dim/FIT/data/NEWurqmd.root", cons
 
 //"home/dim/FIT/data/refMult_ampt15_7gev_500k.root"
 
-void GammaFit(const char *fileadres = "file:///home/dim/FIT/data/refMult_recoUrQMD_7.7gev_500k_NoSecondary.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FIToutGamma/urqmd_7_fitGamma_nosec.root", int minNch = 20, bool efficiencyFit = true, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
+void GammaFit(const char *fileadres = "file:///home/dim/FIT/data/refMult_DCMQGSMSMM_5gev_500k.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FIToutGamma/GSM_5_fitGamma.root", int minNch = 20, bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
 {
     Start(fileadres, current_mult, outadres, minNch, efficiencyFit, fileadres2, current_mult2);
-    //PlotMeanb();
-    PlotMeanb2(fileadres, "hBvsRefMult");
+    PlotMeanb();
+   // PlotMeanb2(fileadres, "hBvsRefMult");
 }
