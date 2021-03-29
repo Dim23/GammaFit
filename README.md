@@ -82,7 +82,11 @@ Use macro `printFinal.C` to display this information in a simple and readable wa
  `root -l -b -q printFinal.C'("path-to-FINAL.root")'`
 
 This will print out all needed information for each centrality class.
-This macro also can save output information in latex format.
+This macro also can save output information in latex and csv table format.
 Example of `printFinal.C` saving in latex table:
 
  `root -l -b -q printFinal.C'("path-to-FINAL.root","./example.tex")'`
+
+  Example of `printFinal.C` saving in csv table (compatible with LibreOffice and MS Excel):
+
+ `root -l -b -q printFinal.C'("path-to-FINAL.root","./example.csv")`

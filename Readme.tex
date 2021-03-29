@@ -1,0 +1,101 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily,
+  showstringspaces=false,
+  commentstyle=\color{red},
+  keywordstyle=\color{blue}
+}
+\usepackage{hyperref}
+\urlstyle{same}
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+
+\title{Quick tutorial for centrality determination using direct impact parameter reconstruction in MPD (NICA)}
+\author{Dim Idrisov, Petr Parfenov, Vinh Ba Luong and Arkadiy Taranenko}
+\date{March 2021}
+
+\begin{document}
+
+\maketitle
+
+\section{The direct impact parameter reconstruction}
+
+\subsection{Installation}
+Below is a detailed description of the program used to reconstruct the distribution of the impact parameter.
+To start the fitting process, dowland script from \url{https://github.com/Dim23/GammaFit.git}\\.
+
+\subsection{Fitting model data}
+In the case of fitting model data, it is sufficient to have only a histogram with a multiplicity distribution. Use following commands to run \texttt{GammaFit.C} :
+
+\begin{lstlisting}[language=bash,caption={}]
+ root -b GammaFit.C(fileadres, current_mult, outadres, minNch)
+\end{lstlisting}
+Where the arguments are:
+\begin{itemize}
+\item \texttt{fileadres} - input root file.
+\item \texttt{current\_mult} - Histogram of multiplicity.
+\item \texttt{outadres} - output file from fitting process.
+\item \texttt{minNch} - lower value of the fitting area ( `20` by default).
+\end{itemize}
+
+to set the value of the cross section in line 17 set the desired value of the variable \texttt{sigma}.
+
+\subsection{Fitting reconstracted data}
+When fitting the reconstructed data, it is necessary to take into account the efficiency of the detectors. To take these features into account, normalization is made to non-reconstructed model data.
+
+To start the fitting process, run \texttt{GammaFit.C} with next option:
+\begin{lstlisting}[language=bash,caption={}]
+ root -b GammaFit.C(fileadres, current_mult, outadres, minNch, efficiencyFit,fileadres2, current_mult2)
+\end{lstlisting}
+Where the arguments are:
+
+\begin{itemize}
+\item \texttt{fileadres} - input root file with multiplisity of the reconstructed data.
+\item \texttt{current\_mult} - Histogram of multiplicity.
+\item \texttt{outadres} - output file from fitting process.
+\item \texttt{minNch} - lower value of the fitting area ( `20` by default).
+\item \texttt{efficiencyFit} - should be set `true` ( `false` by default).
+\item \texttt{fileadres2} - input root file with multiplisity of non-reconstructed model data.
+\item \texttt{current\_mult2} - Histogram with multiplisity of non-reconstructed model data.
+\end{itemize}
+\section{OUTPUT}
+Resulting file \texttt{outadres} will contain TCanvas with fit results and data-to-fit ratio - \texttt{Canvas\_0f\_fit\_result}.
+Where the - \texttt{fit\_func} is the resulting fit function of the multiplicity distribution .
+\texttt{FitResult} - TTree with fit parameters of fit function.
+\texttt{Result} - TTree with min and max percent of centrality and also the boundaries of the centrality classes.
+
+\texttt{TTree} contains the following information about each centrality class:
+\begin{itemize}
+    \item \texttt{MinPercent} -- minimum value of centrality in the given centrality class
+    \item \texttt{MaxPercent} -- maximum value of centrality in the given centrality class
+    \item \texttt{MinBorder} -- lower cut on multiplicity for the given centrality class
+    \item \texttt{MaxBorder} -- upper cut on multiplicity for the given centrality class.
+\end{itemize}
+
+\texttt{fit\_B\_Mean} - TGraphErrors of impact parametr as a function of centrality .
+
+\texttt{ImpactParametDist\_CENT*\_*} - histograms with the distribution of the impact parameter in centrality class.
+\subsection{Using centrality classes provided from the framework in the analysis}
+The file \texttt{outadres} have all needed information about centrality class.
+Use macro \texttt{printFinal.C} to display this information in a simple and readable way:
+\begin{lstlisting}[language=bash,caption={}]
+ root -l -b -q printFinal.C'("path-to-FINAL.root")
+\end{lstlisting}
+This will print out all needed information for each centrality class.
+This macro also can save output information in latex and csv tables format.
+Example of \texttt{printFinal.C} saving in latex table:
+\begin{lstlisting}[language=bash,caption={}]
+ root -l -b -q printFinal.C'("path-to-FINAL.root","./example.tex")
+ \end{lstlisting}
+ Example of \texttt{printFinal.C} saving in csv table (compatible with LibreOffice and MS Excel):
+\begin{lstlisting}[language=bash,caption={}]
+ root -l -b -q printFinal.C'("path-to-FINAL.root","./example.csv")
+\end{lstlisting}
+\end{document}

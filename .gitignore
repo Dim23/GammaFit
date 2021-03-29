@@ -8,3 +8,11 @@
 *.so
 *.d
 *.pcm
+
+# Latex sourse #
+#################
+*.synctex.gz
+*.out
+*.log
+*.aux
+*.pdf
