@@ -232,7 +232,7 @@ void Start(const char *fileadres, const char *current_mult, const char *outadres
 
     treeFit->Write();
 
-    TH1I *hFitResult = new TH1I("fit_hist", "fit_hist", 2000, 0, 2000);
+    TH1F *hFitResult = new TH1F("fit_hist", "fit_hist", 2000, 0, 2000);
     hFitResult->FillRandom("fit_func_full", 10*hRefmult->GetEntries());
 
     float IntSc = hRefmult->Integral(minNch, hRefmult->GetNbinsX(), "width");
