@@ -115,20 +115,22 @@ void Start(const char *fileadres, const char *current_mult, const char *outadres
 
     int Nch0 = minNch;
     TFile *file = new TFile(fileadres);
-    TH1D *Gev = (TH1D *)file->Get(current_mult);
+    
+    TH1D *hRefmult = (TH1D *)file->Get(current_mult);
+    TH1D *Gev = (TH1D *)hRefmult->Clone();
     Gev->Scale(1 / Gev->Integral(1, Gev->GetNbinsX(), "width"));
     bin_cent[0] = 1.05 * Gev->FindLastBinAbove();
 
     if (efficiencyFit == true)
     {
-        int mediumNn = 0.5 * Gev->FindLastBinAbove();
+        int mediumNn = 0.2 * Gev->FindLastBinAbove();
         TFile *fileGl = new TFile(fileadres2);
         TH1D *Ideal = (TH1D *)fileGl->Get(current_mult2);
         Ideal->Scale(1 / Ideal->Integral(1, Ideal->GetNbinsX(), "width"));
         float Integr = Ideal->Integral(mediumNn, Ideal->GetNbinsX(), "width");
         int EfmediumNn = mediumNn * Scale(Ideal, Gev);
         Gev->Scale(Integr / Gev->Integral(EfmediumNn, Gev->GetNbinsX(), "width"));
-        cout << "start3" << endl;
+        //cout << "start3" << endl;
     }
 
     Gev->SetTitle("");
@@ -229,6 +231,15 @@ void Start(const char *fileadres, const char *current_mult, const char *outadres
     treeFit->Fill();
 
     treeFit->Write();
+
+    TH1I *hFitResult = new TH1I("fit_hist", "fit_hist", 2000, 0, 2000);
+    hFitResult->FillRandom("fit_func_full", 10*hRefmult->GetEntries());
+
+    float IntSc = hRefmult->Integral(minNch, hRefmult->GetNbinsX(), "width");
+    hFitResult->Scale(IntSc / hFitResult->Integral(minNch, hFitResult->GetNbinsX(), "width"));
+    hFitResult->SetLineColor(2);
+    hFitResult-> Write();
+    hRefmult -> Write();
 }
 double Pb(double *b, double *Nch)
 {
@@ -479,9 +490,11 @@ void PlotMeanb2(const char *fileadres = "/home/dim/FIT/data/NEWurqmd.root", cons
 
 //"home/dim/FIT/data/refMult_ampt15_7gev_500k.root"
 
-void GammaFit(const char *fileadres = "file:///home/dim/FIT/data/refMult_DCMQGSMSMM_5gev_500k.root", const char *current_mult = "hRefMultSTAR", const char *outadres = "/home/dim/FIT/FIToutGamma/GSM_5_fitGamma.root", int minNch = 20, bool efficiencyFit = false, const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
+void GammaFit(const char *fileadres = "/home/dim/FIT/data/refMult_recoUrQMD_7.7gev_500k_Nhits16_DCAcut0.25.root", const char *current_mult = "hRefMultSTAR",
+ const char *outadres = "/home/dim/FIT/FIToutGamma/recoUrQMD_7_Nhits16_DCAcut025.root_fitGamma.root", int minNch = 20, bool efficiencyFit = true, 
+ const char *fileadres2 = "/home/dim/FIT/data/UrQMD/7.7Gev/refMult_UrQMD_7.7gev_500k.root", const char *current_mult2 = "hRefMultSTAR")
 {
     Start(fileadres, current_mult, outadres, minNch, efficiencyFit, fileadres2, current_mult2);
-    PlotMeanb();
-   // PlotMeanb2(fileadres, "hBvsRefMult");
+    //PlotMeanb();
+    PlotMeanb2(fileadres, "hBvsRefMult");
 }
