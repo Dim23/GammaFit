@@ -98,4 +98,10 @@ Example of \texttt{printFinal.C} saving in latex table:
 \begin{lstlisting}[language=bash,caption={}]
  root -l -b -q printFinal.C'("path-to-FINAL.root","./example.csv")
 \end{lstlisting}
+Example of \texttt{printFinal.C} saving in C++ code:
+\begin{lstlisting}[language=bash,caption={}]
+root -l -b -q printFinal.C'("path-to-FINAL.root","./example.C")'
+\end{lstlisting}
+%
+After \texttt{printFinal.C} generates output C++ code, one can use \texttt{Float\_t GetCentMult(Int\_t)} as a function which returns centrality percent based on input multiplicity value.
 \end{document}

@@ -9,7 +9,7 @@
 #include <TTree.h>
 #include <TH1D.h>
 
-void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/recoUrQMD_7_Nhits16_DCAcut05_fitGamma.root", TString outFileName = "/home/dim/FIT/FIToutGamma/UrQMDreco_7_DCAcut05_Nhits16_Gamma.tex")
+void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/recoUrQMD_7_Nhits16_DCAcut05_fitGamma.root", TString outFileName = "/home/dim/FIT/FIToutGamma/UrQMDreco_7_DCAcut05_Nhits16_Gamma.C")
 {
     if (inFileName == "")
         return;
@@ -26,6 +26,10 @@ void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/recoUrQMD_7_Nhit
         isTypeLatex = true;
     else if (outFileName.Contains(".csv"))
         isTypeScv = true;
+    else if (outFileName.Contains(".C")) isTypeCpp = true;
+    else if (outFileName.Contains(".cpp")) isTypeCpp = true;
+    else if (outFileName.Contains(".h")) isTypeCpp = true;
+    else if (outFileName.Contains(".hpp")) isTypeCpp = true;
 
     TFile *fi = new TFile(inFileName.Data(), "read");
     if (!fi)
@@ -214,6 +218,80 @@ void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/recoUrQMD_7_Nhit
         }
         myfile << " theta , N_knee , a1 , a2 , a3 , chi^2 , NDF , N_{ch}^{fit}(min) , \n";
         myfile << Form("%.2f , %.2f , %.2f , %.2f , %.2f , %.2f , %.2f , %i ,\n", teta, n_knee, a1, a2, a3, chi2, NDF, minNch);
+        std::cout << "Output file " << outFileName.Data() << " is created." << std::endl;
+        myfile.close();
+    }
+
+        // Output for isTypeCpp case
+    if (isTypeCpp)
+    {
+        std::cout << "File: " << inFileName.Data() << "." << std::endl;
+        myfile.open(outFileName.Data());
+
+        myfile << "// Generated from a file: " << inFileName.Data() << "\n";
+        myfile << "Float_t minCentPercent [" << NreasonableClasses << "] = { ";
+        for (int i=0; i<NreasonableClasses; i++)
+        {
+            if (i!=NreasonableClasses-1) myfile << vCent.at(i).first << ", ";
+            if (i==NreasonableClasses-1) myfile << vCent.at(i).first << "};\n";
+        }
+        myfile << "Float_t maxCentPercent [" << NreasonableClasses << "] = { ";
+        for (int i=0; i<NreasonableClasses; i++)
+        {
+            if (i!=NreasonableClasses-1) myfile << vCent.at(i).second << ", ";
+            if (i==NreasonableClasses-1) myfile << vCent.at(i).second << "};\n";
+        }
+        myfile << "Int_t minMult [" << NreasonableClasses << "] = { ";
+        for (int i=0; i<NreasonableClasses; i++)
+        {
+            if (i!=NreasonableClasses-1) myfile << vBorders.at(i).first << ", ";
+            if (i==NreasonableClasses-1) myfile << vBorders.at(i).first << "};\n";
+        }
+        myfile << "Int_t maxMult [" << NreasonableClasses << "] = { ";
+        for (int i=0; i<NreasonableClasses; i++)
+        {
+            if (i!=NreasonableClasses-1) myfile << vBorders.at(i).second << ", ";
+            if (i==NreasonableClasses-1) myfile << vBorders.at(i).second << "};\n";
+        }
+        myfile << "Float_t meanB [" << NreasonableClasses << "] = { ";
+        for (int i=0; i<NreasonableClasses; i++)
+        {
+            if (i!=NreasonableClasses-1) myfile << vBavg.at(i) << ", ";
+            if (i==NreasonableClasses-1) myfile << vBavg.at(i) << "};\n";
+        }
+        myfile << "Float_t rmsB [" << NreasonableClasses << "] = { ";
+        for (int i=0; i<NreasonableClasses; i++)
+        {
+            if (i!=NreasonableClasses-1) myfile << vBavgRMS.at(i) << ", ";
+            if (i==NreasonableClasses-1) myfile << vBavgRMS.at(i) << "};\n";
+        }
+        myfile << "Float_t minB [" << NreasonableClasses << "] = { ";
+        for (int i=0; i<NreasonableClasses; i++)
+        {
+            if (i!=NreasonableClasses-1) myfile << vBimp.at(i).first << ", ";
+            if (i==NreasonableClasses-1) myfile << vBimp.at(i).first << "};\n";
+        }
+        myfile << "Float_t maxB [" << NreasonableClasses << "] = { ";
+        for (int i=0; i<NreasonableClasses; i++)
+        {
+            if (i!=NreasonableClasses-1) myfile << vBimp.at(i).second << ", ";
+            if (i==NreasonableClasses-1) myfile << vBimp.at(i).second << "};\n";
+        }
+
+        myfile << std::endl;
+        myfile << "Float_t GetCentMult(Int_t mult)\n";
+        myfile << "//Function returns centrality (in percent) for a given multiplicity\n";
+        myfile << "{\n";
+        myfile << "\tInt_t centBin = -1;\n";
+        myfile << "\tfor (Int_t i = 0; i < " << NreasonableClasses << "; i++)\n";
+        myfile << "\t{\n";
+        myfile << "\t\tif (mult >= minMult[i] && mult < maxMult[i])\n";
+        myfile << "\t\t\tcentBin = i;\n";
+        myfile << "\t}\n";
+        myfile << "\tif (centBin == -1) return -1.;\n";
+        myfile << "\treturn (Double_t)((maxCentPercent[centBin] - minCentPercent[centBin]) / 2. + minCentPercent[centBin]);\n";
+        myfile << "}";
+        
         std::cout << "Output file " << outFileName.Data() << " is created." << std::endl;
         myfile.close();
     }
