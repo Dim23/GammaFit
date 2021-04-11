@@ -9,7 +9,7 @@
 #include <TTree.h>
 #include <TH1D.h>
 
-void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/GSM_5_fitGamma.root", TString outFileName = "/home/dim/FIT/FIToutGamma/GSM_5_fitGammaOut.csv")
+void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/recoUrQMD_7_Nhits16_DCAcut05_fitGamma.root", TString outFileName = "/home/dim/FIT/FIToutGamma/UrQMDreco_7_DCAcut05_Nhits16_Gamma.tex")
 {
     if (inFileName == "")
         return;
@@ -79,6 +79,9 @@ void printFinal(TString inFileName = "/home/dim/FIT/FIToutGamma/GSM_5_fitGamma.r
     TF1 *fitB = new TF1("fitB", "pol5", 0., 100.);
 
     hBavg->Fit(fitB, "R0Q");
+    hBavg->Draw();
+    fitB->Draw("SAME");
+    
 
     // Extract min/max values for B
     Float_t fmin, fmax;
